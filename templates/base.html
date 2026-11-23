@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BukuKas{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a href="#konten-utama" class="skip-link">Lewati ke konten utama</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="{{ url_for('index') }}" class="brand">BukuKas</a>
+
+      <nav class="main-nav" aria-label="Navigasi utama">
+        <a
+          href="{{ url_for('index') }}"
+          class="nav-link {% if active_nav == 'transaksi' %}is-active{% endif %}"
+          {% if active_nav == 'transaksi' %}aria-current="page"{% endif %}
+        >
+          Transaksi
+        </a>
+        <a
+          href="{{ url_for('daftar_akun') }}"
+          class="nav-link {% if active_nav == 'akun' %}is-active{% endif %}"
+          {% if active_nav == 'akun' %}aria-current="page"{% endif %}
+        >
+          Akun
+        </a>
+        <a
+          href="{{ url_for('daftar_anggaran') }}"
+          class="nav-link {% if active_nav == 'anggaran' %}is-active{% endif %}"
+          {% if active_nav == 'anggaran' %}aria-current="page"{% endif %}
+        >
+          Anggaran
+        </a>
+      </nav>
+
+      <div class="header-cta">
+        <a href="{{ url_for('tambah_transaksi') }}" class="btn btn-primary">Tambah Transaksi</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="konten-utama" class="container main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div
+              class="alert alert-{{ category }}"
+              role="{{ 'alert' if category == 'error' else 'status' }}"
+            >
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    document.querySelectorAll("form[data-confirm]").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        if (!window.confirm(form.dataset.confirm)) {
+          event.preventDefault();
+          form.dataset.cancelled = "1";
+        } else {
+          delete form.dataset.cancelled;
+        }
+      });
+    });
+
+    document.querySelectorAll("form[data-loading-text]").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        if (event.defaultPrevented || form.dataset.cancelled === "1") return;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!submitBtn) return;
+        submitBtn.disabled = true;
+        submitBtn.setAttribute("aria-busy", "true");
+        submitBtn.textContent = form.dataset.loadingText;
+      });
+    });
+  </script>
+</body>
+</html>

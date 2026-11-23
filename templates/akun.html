@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Akun - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="summary-grid summary-two" aria-label="Ringkasan akun">
+    <article class="summary-card summary-primary">
+      <p class="summary-label">Total Saldo Gabungan</p>
+      <p class="summary-value num">{{ total_saldo | rupiah }}</p>
+      <p class="summary-meta">Akumulasi saldo awal dan seluruh transaksi pada {{ akun_list | length }} akun</p>
+    </article>
+
+    <article class="summary-card summary-action-card">
+      <div>
+        <p class="summary-label">Kelola Sumber Dana</p>
+        <p class="summary-meta">Tambahkan dompet tunai, e-wallet (DANA, GoPay, ShopeePay), atau rekening bank.</p>
+      </div>
+      <a href="{{ url_for('tambah_akun') }}" class="btn btn-primary">Tambah Akun</a>
+    </article>
+  </section>
+
+  <section class="panel" aria-labelledby="judul-akun">
+    <div class="panel-header panel-header-inline">
+      <h1 id="judul-akun" class="panel-title">Daftar Akun</h1>
+      <a href="{{ url_for('tambah_akun') }}" class="btn btn-secondary">Tambah Akun Baru</a>
+    </div>
+
+    {% if db_error %}
+      <div class="state-box state-error" role="alert">
+        <h2>Daftar akun tidak dapat dimuat</h2>
+        <p>{{ db_error }}</p>
+        <a href="{{ url_for('daftar_akun') }}" class="btn btn-secondary">Muat Ulang Halaman</a>
+      </div>
+    {% elif akun_list %}
+      <ul class="tx-list">
+        {% for akun in akun_list %}
+          <li class="tx-row">
+            <div class="tx-main">
+              <div class="tx-topline">
+                <span class="tx-category">{{ akun.nama }}</span>
+                <span class="badge badge-neutral">{{ akun.tipe }}</span>
+                <span class="tx-date">{{ akun.jumlah_transaksi }} transaksi</span>
+              </div>
+              <p class="tx-note num">
+                Saldo awal: {{ akun.saldo_awal | rupiah }} |
+                Masuk: {{ akun.total_masuk | rupiah }} |
+                Keluar: {{ akun.total_keluar | rupiah }}
+              </p>
+            </div>
+
+            <div class="tx-side">
+              <p class="tx-amount num {{ 'text-expense' if akun.saldo_sekarang < 0 else '' }}">
+                {{ akun.saldo_sekarang | rupiah }}
+              </p>
+              <div class="tx-actions">
+                <a href="{{ url_for('edit_akun', akun_id=akun.id) }}" class="btn btn-ghost">Edit</a>
+                <form
+                  method="post"
+                  action="{{ url_for('hapus_akun', akun_id=akun.id) }}"
+                  data-confirm="Hapus akun {{ akun.nama }}?"
+                  data-loading-text="Menghapus..."
+                >
+                  <button type="submit" class="btn btn-danger-ghost">Hapus</button>
+                </form>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="state-box">
+        <h2>Belum ada akun tercatat</h2>
+        <p>Tambahkan akun seperti Cash, DANA, GoPay, atau ShopeePay untuk mulai melacak saldo.</p>
+        <a href="{{ url_for('tambah_akun') }}" class="btn btn-primary">Tambah Akun Pertama</a>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

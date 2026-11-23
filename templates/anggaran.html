@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Anggaran - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="summary-grid" aria-label="Ringkasan anggaran bulan {{ bulan }}">
+    <article class="summary-card summary-primary">
+      <p class="summary-label">Total Anggaran ({{ bulan }})</p>
+      <p class="summary-value num">{{ ringkasan.total_batas | rupiah }}</p>
+      <p class="summary-meta">{{ anggaran_list | length }} pos anggaran aktif</p>
+    </article>
+
+    <article class="summary-card">
+      <p class="summary-label">Total Terpakai</p>
+      <p class="summary-value num text-expense">{{ ringkasan.total_terpakai | rupiah }}</p>
+    </article>
+
+    <article class="summary-card">
+      <p class="summary-label">Sisa Anggaran</p>
+      <p class="summary-value num {{ 'text-expense' if ringkasan.total_sisa < 0 else 'text-income' }}">
+        {{ ringkasan.total_sisa | rupiah }}
+      </p>
+    </article>
+  </section>
+
+  <section class="panel" aria-labelledby="judul-anggaran">
+    <div class="panel-header">
+      <div class="panel-header-inline">
+        <h1 id="judul-anggaran" class="panel-title">Daftar Anggaran Bulanan</h1>
+        <a href="{{ url_for('tambah_anggaran', bulan=bulan) }}" class="btn btn-primary">Tambah Anggaran</a>
+      </div>
+
+      <form
+        method="get"
+        action="{{ url_for('daftar_anggaran') }}"
+        class="filter-form"
+        data-loading-text="Memuat..."
+      >
+        <div class="filter-group filter-month-only">
+          <label for="pilih-bulan" class="sr-only">Pilih bulan anggaran</label>
+          <input
+            id="pilih-bulan"
+            type="month"
+            name="bulan"
+            class="input"
+            value="{{ bulan }}"
+          >
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-secondary">Tampilkan Bulan</button>
+        </div>
+      </form>
+    </div>
+
+    {% if db_error %}
+      <div class="state-box state-error" role="alert">
+        <h2>Data anggaran tidak dapat dimuat</h2>
+        <p>{{ db_error }}</p>
+        <a href="{{ url_for('daftar_anggaran', bulan=bulan) }}" class="btn btn-secondary">Muat Ulang Halaman</a>
+      </div>
+    {% elif anggaran_list %}
+      <ul class="tx-list">
+        {% for item in anggaran_list %}
+          <li class="budget-row">
+            <div class="budget-top">
+              <div class="tx-main">
+                <div class="tx-topline">
+                  <span class="tx-category">{{ item.kategori }}</span>
+                  <span class="badge badge-status-{{ item.status }}">{{ item.label_status }}</span>
+                  <span class="tx-date num">{{ item.persen }}% terpakai</span>
+                </div>
+                {% if item.catatan %}
+                  <p class="tx-note">{{ item.catatan }}</p>
+                {% endif %}
+              </div>
+
+              <div class="tx-actions">
+                <a href="{{ url_for('edit_anggaran', anggaran_id=item.id) }}" class="btn btn-ghost">Edit</a>
+                <form
+                  method="post"
+                  action="{{ url_for('hapus_anggaran', anggaran_id=item.id) }}"
+                  data-confirm="Hapus anggaran {{ item.kategori }} untuk bulan {{ item.bulan }}?"
+                  data-loading-text="Menghapus..."
+                >
+                  <input type="hidden" name="bulan" value="{{ item.bulan }}">
+                  <button type="submit" class="btn btn-danger-ghost">Hapus</button>
+                </form>
+              </div>
+            </div>
+
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-label="Pemakaian anggaran {{ item.kategori }}"
+              aria-valuenow="{{ item.persen }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div
+                class="progress-fill progress-{{ item.status }}"
+                style="width: {{ item.persen_bar }}%;"
+              ></div>
+            </div>
+
+            <div class="budget-meta num">
+              <span>Terpakai {{ item.terpakai | rupiah }} dari {{ item.batas_nominal | rupiah }}</span>
+              {% if item.sisa >= 0 %}
+                <span class="text-income">Sisa {{ item.sisa | rupiah }}</span>
+              {% else %}
+                <span class="text-expense">Lebih {{ (item.sisa | abs) | rupiah }}</span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="state-box">
+        <h2>Belum ada anggaran untuk {{ bulan }}</h2>
+        <p>Buat batas pengeluaran untuk kategori seperti Makan, Minum, atau Jajan agar pengeluaran lebih terkontrol.</p>
+        <a href="{{ url_for('tambah_anggaran', bulan=bulan) }}" class="btn btn-primary">Tambah Anggaran Pertama</a>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

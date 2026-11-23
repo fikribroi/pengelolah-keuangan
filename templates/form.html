@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Transaksi' if mode == 'edit' else 'Tambah Transaksi' }} - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="panel form-panel" aria-labelledby="judul-form">
+    <div class="form-header">
+      <h1 id="judul-form" class="panel-title">
+        {{ 'Edit Transaksi' if mode == 'edit' else 'Tambah Transaksi Baru' }}
+      </h1>
+      <a href="{{ url_for('index') }}" class="btn btn-ghost">Kembali ke Daftar</a>
+    </div>
+
+    {% if errors %}
+      <div class="alert alert-error" role="alert">
+        <p class="alert-title">Periksa kembali input berikut:</p>
+        <ul class="error-list">
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form
+      method="post"
+      class="tx-form"
+      data-loading-text="{{ 'Menyimpan perubahan...' if mode == 'edit' else 'Menyimpan transaksi...' }}"
+      novalidate
+    >
+      <div class="field-row">
+        <div class="field">
+          <label for="jenis">Jenis Transaksi</label>
+          <select id="jenis" name="jenis" class="input" required>
+            <option value="pengeluaran" {% if data.jenis == 'pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+            <option value="pemasukan" {% if data.jenis == 'pemasukan' %}selected{% endif %}>Pemasukan</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tanggal">Tanggal</label>
+          <input
+            id="tanggal"
+            type="date"
+            name="tanggal"
+            class="input"
+            value="{{ data.tanggal }}"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="kategori">Kategori</label>
+          <input
+            id="kategori"
+            type="text"
+            name="kategori"
+            class="input"
+            list="daftar-kategori"
+            maxlength="60"
+            value="{{ data.kategori }}"
+            placeholder="Contoh: Makan, Gaji, Transportasi"
+            required
+          >
+          <datalist id="daftar-kategori">
+            <option value="Gaji"></option>
+            <option value="Uang Saku"></option>
+            <option value="Makan"></option>
+            <option value="Transportasi"></option>
+            <option value="Tagihan"></option>
+            <option value="Belanja"></option>
+            <option value="Lainnya"></option>
+          </datalist>
+        </div>
+
+        <div class="field">
+          <label for="nominal">Nominal (Rupiah)</label>
+          <input
+            id="nominal"
+            type="number"
+            name="nominal"
+            class="input num"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            value="{{ data.nominal }}"
+            placeholder="Contoh: 50000"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="catatan">Catatan (opsional)</label>
+        <textarea
+          id="catatan"
+          name="catatan"
+          class="input textarea"
+          rows="3"
+          maxlength="200"
+          placeholder="Tambahkan keterangan singkat bila perlu"
+        >{{ data.catatan }}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Perbarui Transaksi' if mode == 'edit' else 'Simpan Transaksi' }}
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Batal</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Transaksi - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="summary-grid" aria-label="Ringkasan keuangan">
+    <article class="summary-card summary-primary">
+      <p class="summary-label">Total Saldo Semua Akun</p>
+      <p class="summary-value num">{{ ringkasan.saldo_total | rupiah }}</p>
+      <p class="summary-meta">{{ akun_list | length }} akun aktif, {{ total_semua }} transaksi tercatat</p>
+    </article>
+
+    <article class="summary-card">
+      <p class="summary-label">
+        Pemasukan {{ '(' ~ filter_bulan ~ ')' if filter_bulan else '(Semua Waktu)' }}
+      </p>
+      <p class="summary-value num text-income">{{ ringkasan.pemasukan | rupiah }}</p>
+    </article>
+
+    <article class="summary-card">
+      <p class="summary-label">
+        Pengeluaran {{ '(' ~ filter_bulan ~ ')' if filter_bulan else '(Semua Waktu)' }}
+      </p>
+      <p class="summary-value num text-expense">{{ ringkasan.pengeluaran | rupiah }}</p>
+    </article>
+  </section>
+
+  <section class="panel" aria-labelledby="judul-daftar">
+    <div class="panel-header">
+      <h1 id="judul-daftar" class="panel-title">Daftar Transaksi</h1>
+
+      <form
+        method="get"
+        action="{{ url_for('index') }}"
+        class="filter-form"
+        data-loading-text="Memuat..."
+      >
+        <div class="filter-group">
+          <label for="filter-jenis" class="sr-only">Filter jenis transaksi</label>
+          <select id="filter-jenis" name="jenis" class="input">
+            <option value="semua" {% if filter_jenis == 'semua' %}selected{% endif %}>Semua jenis</option>
+            <option value="pemasukan" {% if filter_jenis == 'pemasukan' %}selected{% endif %}>Pemasukan</option>
+            <option value="pengeluaran" {% if filter_jenis == 'pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-akun" class="sr-only">Filter akun</label>
+          <select id="filter-akun" name="akun" class="input">
+            <option value="semua" {% if filter_akun == 'semua' %}selected{% endif %}>Semua akun</option>
+            {% for akun in akun_list %}
+              <option value="{{ akun.id }}" {% if filter_akun == (akun.id | string) %}selected{% endif %}>
+                {{ akun.nama }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-bulan" class="sr-only">Filter bulan</label>
+          <input
+            id="filter-bulan"
+            type="month"
+            name="bulan"
+            class="input"
+            value="{{ filter_bulan }}"
+          >
+        </div>
+
+        <div class="filter-group filter-search">
+          <label for="filter-q" class="sr-only">Cari kategori, akun, atau catatan</label>
+          <input
+            id="filter-q"
+            type="search"
+            name="q"
+            class="input"
+            value="{{ kata_kunci }}"
+            placeholder="Cari kategori, akun, atau catatan"
+          >
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-secondary">Terapkan Filter</button>
+          {% if filter_jenis != 'semua' or filter_akun != 'semua' or filter_bulan or kata_kunci %}
+            <a href="{{ url_for('index') }}" class="btn btn-ghost">Reset Filter</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    {% if db_error %}
+      <div class="state-box state-error" role="alert">
+        <h2>Data tidak dapat dimuat</h2>
+        <p>{{ db_error }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Muat Ulang Halaman</a>
+      </div>
+    {% elif transaksi_list %}
+      <ul class="tx-list">
+        {% for item in transaksi_list %}
+          <li class="tx-row">
+            <div class="tx-main">
+              <div class="tx-topline">
+                <span class="badge badge-{{ item.jenis }}">
+                  {{ 'Pemasukan' if item.jenis == 'pemasukan' else 'Pengeluaran' }}
+                </span>
+                <span class="badge badge-neutral">{{ item.nama_akun }}</span>
+                <span class="tx-category">{{ item.kategori }}</span>
+                <time class="tx-date" datetime="{{ item.tanggal }}">{{ item.tanggal }}</time>
+              </div>
+              {% if item.catatan %}
+                <p class="tx-note">{{ item.catatan }}</p>
+              {% endif %}
+            </div>
+
+            <div class="tx-side">
+              <p class="tx-amount num {{ 'text-income' if item.jenis == 'pemasukan' else 'text-expense' }}">
+                {{ '+' if item.jenis == 'pemasukan' else '-' }}{{ item.nominal | rupiah }}
+              </p>
+              <div class="tx-actions">
+                <a href="{{ url_for('edit_transaksi', transaksi_id=item.id) }}" class="btn btn-ghost">Edit</a>
+                <form
+                  method="post"
+                  action="{{ url_for('hapus_transaksi', transaksi_id=item.id) }}"
+                  data-confirm="Hapus transaksi {{ item.kategori }} ({{ item.nama_akun }}) sebesar {{ item.nominal | rupiah }}?"
+                  data-loading-text="Menghapus..."
+                >
+                  <button type="submit" class="btn btn-danger-ghost">Hapus</button>
+                </form>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="state-box">
+        {% if filter_jenis != 'semua' or filter_akun != 'semua' or filter_bulan or kata_kunci %}
+          <h2>Tidak ada transaksi yang cocok</h2>
+          <p>Ubah filter atau kata kunci pencarian untuk melihat transaksi lainnya.</p>
+          <a href="{{ url_for('index') }}" class="btn btn-secondary">Reset Filter</a>
+        {% else %}
+          <h2>Belum ada transaksi tercatat</h2>
+          <p>Catat pemasukan atau pengeluaran pertama Anda untuk memperbarui saldo akun dan progres anggaran.</p>
+          <a href="{{ url_for('tambah_transaksi') }}" class="btn btn-primary">Tambah Transaksi Pertama</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

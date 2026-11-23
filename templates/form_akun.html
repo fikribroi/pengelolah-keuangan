@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Akun' if mode == 'edit' else 'Tambah Akun' }} - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="panel form-panel" aria-labelledby="judul-form-akun">
+    <div class="form-header">
+      <h1 id="judul-form-akun" class="panel-title">
+        {{ 'Edit Akun' if mode == 'edit' else 'Tambah Akun Baru' }}
+      </h1>
+      <a href="{{ url_for('daftar_akun') }}" class="btn btn-ghost">Kembali ke Akun</a>
+    </div>
+
+    {% if errors %}
+      <div class="alert alert-error" role="alert">
+        <p class="alert-title">Periksa kembali input berikut:</p>
+        <ul class="error-list">
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form
+      method="post"
+      class="tx-form"
+      data-loading-text="{{ 'Menyimpan perubahan...' if mode == 'edit' else 'Menyimpan akun...' }}"
+      novalidate
+    >
+      <div class="field-row">
+        <div class="field">
+          <label for="nama">Nama Akun</label>
+          <input
+            id="nama"
+            type="text"
+            name="nama"
+            class="input"
+            list="saran-akun"
+            maxlength="50"
+            value="{{ data.nama }}"
+            placeholder="Contoh: Cash, DANA, GoPay, ShopeePay, BRI"
+            required
+          >
+          <datalist id="saran-akun">
+            <option value="Cash"></option>
+            <option value="DANA"></option>
+            <option value="GoPay"></option>
+            <option value="ShopeePay"></option>
+            <option value="OVO"></option>
+            <option value="SeaBank"></option>
+            <option value="BCA"></option>
+            <option value="BRI"></option>
+            <option value="Mandiri"></option>
+          </datalist>
+        </div>
+
+        <div class="field">
+          <label for="tipe">Tipe Akun</label>
+          <select id="tipe" name="tipe" class="input" required>
+            {% for tipe in tipe_pilihan %}
+              <option value="{{ tipe }}" {% if data.tipe == tipe %}selected{% endif %}>{{ tipe }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="saldo_awal">Saldo Awal (Rupiah)</label>
+        <input
+          id="saldo_awal"
+          type="number"
+          name="saldo_awal"
+          class="input num"
+          min="0"
+          step="1"
+          inputmode="numeric"
+          value="{{ data.saldo_awal }}"
+          placeholder="0"
+          required
+        >
+        <p class="field-help">Saldo awal akan otomatis dijumlahkan dengan pemasukan dan dikurangi pengeluaran pada akun ini.</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Perbarui Akun' if mode == 'edit' else 'Simpan Akun' }}
+        </button>
+        <a href="{{ url_for('daftar_akun') }}" class="btn btn-secondary">Batal</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

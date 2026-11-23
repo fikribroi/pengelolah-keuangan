@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Anggaran' if mode == 'edit' else 'Tambah Anggaran' }} - BukuKas{% endblock %}
+
+{% block content %}
+  <section class="panel form-panel" aria-labelledby="judul-form-anggaran">
+    <div class="form-header">
+      <h1 id="judul-form-anggaran" class="panel-title">
+        {{ 'Edit Anggaran' if mode == 'edit' else 'Tambah Anggaran Baru' }}
+      </h1>
+      <a href="{{ url_for('daftar_anggaran', bulan=data.bulan) }}" class="btn btn-ghost">Kembali ke Anggaran</a>
+    </div>
+
+    {% if errors %}
+      <div class="alert alert-error" role="alert">
+        <p class="alert-title">Periksa kembali input berikut:</p>
+        <ul class="error-list">
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <form
+      method="post"
+      class="tx-form"
+      data-loading-text="{{ 'Menyimpan perubahan...' if mode == 'edit' else 'Menyimpan anggaran...' }}"
+      novalidate
+    >
+      <div class="field-row">
+        <div class="field">
+          <label for="bulan">Bulan Anggaran</label>
+          <input
+            id="bulan"
+            type="month"
+            name="bulan"
+            class="input"
+            value="{{ data.bulan }}"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="kategori">Kategori</label>
+          <input
+            id="kategori"
+            type="text"
+            name="kategori"
+            class="input"
+            list="saran-anggaran"
+            maxlength="60"
+            value="{{ data.kategori }}"
+            placeholder="Contoh: Makan, Minum, Jajan"
+            required
+          >
+          <datalist id="saran-anggaran">
+            {% for kat in saran_kategori %}
+              <option value="{{ kat }}"></option>
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="batas_nominal">Batas Anggaran (Rupiah)</label>
+        <input
+          id="batas_nominal"
+          type="number"
+          name="batas_nominal"
+          class="input num"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          value="{{ data.batas_nominal }}"
+          placeholder="Contoh: 500000"
+          required
+        >
+        <p class="field-help">Setiap transaksi pengeluaran dengan kategori dan bulan yang sama akan mengurangi sisa anggaran ini.</p>
+      </div>
+
+      <div class="field">
+        <label for="catatan">Catatan (opsional)</label>
+        <textarea
+          id="catatan"
+          name="catatan"
+          class="input textarea"
+          rows="3"
+          maxlength="200"
+          placeholder="Contoh: Batas makan harian Rp 20.000"
+        >{{ data.catatan }}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Perbarui Anggaran' if mode == 'edit' else 'Simpan Anggaran' }}
+        </button>
+        <a href="{{ url_for('daftar_anggaran', bulan=data.bulan) }}" class="btn btn-secondary">Batal</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
